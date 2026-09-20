@@ -54,6 +54,11 @@ config BUILD_REMIX
 config BUILD_STARTER
 	bool "pantavisor-starter"
 
+config BUILD_CLINNECT_MINIMAL
+	bool "clinnect-minimal"
+	depends on BUILD_TYPE_BSP_PLAIN || BUILD_TYPE_BSP_MULTI
+	depends on CODENAME_SCARTHGAP
+
 endchoice
 
 config KAS_LOCAL_BUILD_BSP
@@ -63,6 +68,7 @@ config KAS_LOCAL_BUILD_BSP
 
 config KAS_TARGET_BUILD
 	string
+	default "clinnect-minimal" if BUILD_CLINNECT_MINIMAL
 	default "pantavisor-bsp" if BUILD_BSP
 	default "pantavisor-remix" if BUILD_REMIX
 	default "pantavisor-starter" if BUILD_STARTER
@@ -98,7 +104,7 @@ config KAS_TARGET_PVFLASH_BUNDLE
 config PVBSP_FIRMWARE_PKG
 	string "BSP Firmware"
 	default "${MACHINE_FIRMWARE} linux-firmware"
-	depends on BUILD_BSP
+	depends on BUILD_TYPE_BSP_PLAIN || BUILD_TYPE_BSP_MULTI
 
 menu "Optional overlays"
 
@@ -231,12 +237,13 @@ config KAS_LOCAL_FEATURE_XCONNECT
 endmenu
 config MACHINE_FILTER_ALL
 	bool "Show All Machines"
+	depends on !BUILD_CLINNECT_MINIMAL
 	default y
 
 choice
 	prompt "Filter Machines"
 	default MACHINE_FILTER_QEMU
-	depends on MACHINE_FILTER_ALL = n
+	depends on MACHINE_FILTER_ALL = n && !BUILD_CLINNECT_MINIMAL
 
 config MACHINE_FILTER_QEMU
 	bool "qemu"
@@ -321,7 +328,10 @@ config PLATFORM_96BOARDS
 
 choice
 	prompt "Machine"
+	default MACHINE_CLINNECTHUB if BUILD_CLINNECT_MINIMAL
 	default MACHINE_QEMUARM
+
+if !BUILD_CLINNECT_MINIMAL
 
 config MACHINE_DOCKERX86_64
 	bool "dockerX86-64"
@@ -358,10 +368,19 @@ config MACHINE_RPI
 	depends on MACHINE_FILTER_ALL || MACHINE_FILTER_RPI
 	select PLATFORM_RPI
 
+endif
+
 config MACHINE_RPI_ARMV8
 	bool "raspberrypi-armv8"
-	depends on MACHINE_FILTER_ALL || MACHINE_FILTER_RPI
+	depends on BUILD_CLINNECT_MINIMAL || MACHINE_FILTER_ALL || MACHINE_FILTER_RPI
 	select PLATFORM_RPI
+
+config MACHINE_CLINNECTHUB
+	bool "ClinnectHub CM4"
+	depends on BUILD_CLINNECT_MINIMAL
+	select PLATFORM_RPI
+
+if !BUILD_CLINNECT_MINIMAL
 
 config MACHINE_RPI_ARMV7
 	bool "raspberrypi-armv7"
@@ -515,6 +534,8 @@ config MACHINE_ORANGEPI_I96
 	depends on MACHINE_FILTER_ALL || MACHINE_FILTER_96BOARDS
 	select PLATFORM_96BOARDS
 
+endif
+
 endchoice
 
 config KAS_INCLUDE_MACHINE_QEMUX86_64
@@ -548,6 +569,10 @@ config KAS_INCLUDE_MACHINE_RPI
 config KAS_INCLUDE_MACHINE_RPI_ARMV8
 	string
 	default "kas/machines/raspberrypi-armv8.yaml" if MACHINE_RPI_ARMV8
+
+config KAS_INCLUDE_MACHINE_CLINNECTHUB
+	string
+	default "kas/machines/raspberrypi-armv8.yaml" if MACHINE_CLINNECTHUB
 
 config KAS_INCLUDE_MACHINE_RPI_ARMV7
 	string
@@ -671,6 +696,10 @@ config KAS_INCLUDE_CODENAME
 	string
 	default "kas/kirkstone.yaml" if CODENAME_KIRKSTONE
 	default "kas/scarthgap.yaml" if CODENAME_SCARTHGAP
+
+config KAS_INCLUDE_CLINNECTHUB
+	string
+	default "kas/clinnecthub.yaml" if BUILD_CLINNECT_MINIMAL
 
 config KAS_INCLUDE_VARISCITE
 	string
