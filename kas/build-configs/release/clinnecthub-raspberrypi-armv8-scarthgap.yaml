@@ -1,0 +1,8 @@
+header:
+    version: 16
+    includes:
+        - kas/build-configs/release/raspberrypi-armv8-scarthgap.yaml
+        - kas/clinnecthub.yaml
+
+target:
+- clinnect-minimal
